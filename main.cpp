@@ -65,21 +65,20 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    if((s = OpenSocket("93.184.220.127", 80)) <= 0)
-    {
-        printf("Connect error %d\n", WSAGetLastError());
-        return EXIT_FAILURE;
-    }
-
     /**
         Get track id
     */
-
     printf("Get track id ... ");
 
     int w = sprintf_s(pBuffer, BUFFER_SIZE, "GET /resolve?url=%s&client_id=bb9d0bcd8f2b1d18d954f7c93d531161 HTTP/1.1\r\n", argv[1]);
     w += sprintf_s(pBuffer + w, BUFFER_SIZE - w, "Host: %s\r\n", "api.soundcloud.com");
     w += sprintf_s(pBuffer + w, BUFFER_SIZE - w, "\r\n");
+
+    if((s = OpenSocket("93.184.220.127", 80)) <= 0)
+    {
+        printf("Connect error %d\n", WSAGetLastError());
+        return EXIT_FAILURE;
+    }
 
     if(send(s, pBuffer, w, 0) < 0)
     {

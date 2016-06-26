@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
     while((rc = recv(s, pBuffer + i, BUFFER_SIZE - i, 0)) > 0) i += rc;
 
     char *pDataStart = strstr(pBuffer, "\r\n\r\n") + 4;
-    int HeaderSize = (int) (pDataStart + 4 - pBuffer);
+    int HeaderSize = (int) (pDataStart - pBuffer);
 
     shutdown(s, SD_BOTH); closesocket(s);
     memset(pAuxBuffer, 0, AUX_BUFFER_SIZE);
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
     while((rc = recv(s, pBuffer + i, BUFFER_SIZE - i, 0)) > 0) i += rc;
 
     pDataStart = strstr(pBuffer, "\r\n\r\n") + 4;
-    HeaderSize = (int) (pDataStart + 4 - pBuffer);
+    HeaderSize = (int) (pDataStart - pBuffer);
 
     shutdown(s, SD_BOTH); closesocket(s);
     memset(pAuxBuffer, 0, AUX_BUFFER_SIZE);
@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
     WSACleanup();
 
     pDataStart = strstr(pBuffer, "\r\n\r\n") + 4;
-    HeaderSize = (int) (pDataStart + 4 - pBuffer);
+    HeaderSize = (int) (pDataStart - pBuffer);
 
     FILE *pFile = NULL;
     fopen_s(&pFile, "music.mp3", "wb");

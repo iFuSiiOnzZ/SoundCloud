@@ -82,6 +82,7 @@ int main(int argc, char *argv[])
     if (WSAStartup(MAKEWORD(2,2),&wsa) != 0)
     {
         printf("Failed. Error Code : %d\n", WSAGetLastError());
+        free(pBuffer); free(pAuxBuffer);
         return EXIT_FAILURE;
     }
 
@@ -97,12 +98,14 @@ int main(int argc, char *argv[])
     if((s = OpenSocket("93.184.220.127", 80)) <= 0)
     {
         printf("Connect error %d\n", WSAGetLastError());
+        free(pBuffer); free(pAuxBuffer);
         return EXIT_FAILURE;
     }
 
     if(send(s, pBuffer, w, 0) < 0)
     {
         printf("Send failed %d\n", WSAGetLastError());
+        free(pBuffer); free(pAuxBuffer);
         return EXIT_FAILURE;
     }
 
@@ -134,12 +137,14 @@ int main(int argc, char *argv[])
     if((s = OpenSocket("93.184.220.127", 80)) <= 0)
     {
         printf("Connect error %d\n", WSAGetLastError());
+        free(pBuffer); free(pAuxBuffer);
         return EXIT_FAILURE;
     }
 
     if(send(s, pBuffer, w, 0) < 0)
     {
         printf("Send failed %d\n", WSAGetLastError());
+        free(pBuffer); free(pAuxBuffer);
         return EXIT_FAILURE;
     }
 
@@ -168,12 +173,14 @@ int main(int argc, char *argv[])
     if((s = OpenSocket("93.184.220.127", 80)) <= 0)
     {
         printf("Connect error %d\n", WSAGetLastError());
+        free(pBuffer); free(pAuxBuffer);
         return EXIT_FAILURE;
     }
 
     if(send(s, pBuffer, w, 0) < 0)
     {
         printf("Send failed %d\n", WSAGetLastError());
+        free(pBuffer); free(pAuxBuffer);
         return EXIT_FAILURE;
     }
 
@@ -204,11 +211,13 @@ int main(int argc, char *argv[])
     if((s = OpenSocket(pHostIp, 80)) <= 0)
     {
         printf("Connect error %d\n", WSAGetLastError());
+        free(pBuffer); free(pAuxBuffer);
         return EXIT_FAILURE;
     }
 
     if(send(s, pBuffer, (int) w, 0) < 0)
     {
+        free(pBuffer); free(pAuxBuffer);
         printf("Send failed\n");
         return EXIT_FAILURE;
     }
@@ -230,6 +239,8 @@ int main(int argc, char *argv[])
     fwrite(pDataStart, sz, 1, pFile);
     fclose(pFile);
 
+    free(pBuffer); free(pAuxBuffer);
     printf("done\n");
+    
     return EXIT_SUCCESS;
 }

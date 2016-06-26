@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include<winsock2.h>
+#include <winsock2.h>
 #pragma comment(lib, "ws2_32.lib")
 
 #define BUFFER_SIZE         (32 * 1024 * 1024)
 #define AUX_BUFFER_SIZE     (8 * 1024)
 
-void GetString(char *pjSon, char *pMP3Url, char *pStr)
+static void GetString(char *pjSon, char *pMP3Url, char *pStr)
 {
     char *pMP3Start = strstr(pjSon, pStr);
     pMP3Start += strlen(pStr);
@@ -19,7 +19,7 @@ void GetString(char *pjSon, char *pMP3Url, char *pStr)
     }
 }
 
-void GetHost(char *pHeader, char *pHostName)
+static void GetHost(char *pHeader, char *pHostName)
 {
     char *pHostStart = strstr(pHeader, "//");
     pHostStart += 2;
@@ -31,7 +31,7 @@ void GetHost(char *pHeader, char *pHostName)
     }
 }
 
-SOCKET OpenSocket(char *pIP, short Port)
+static SOCKET OpenSocket(char *pIP, short Port)
 {
     SOCKET s = 0;
     if((s = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
@@ -48,7 +48,7 @@ SOCKET OpenSocket(char *pIP, short Port)
     return connect(s, (struct sockaddr *) &server, sizeof(server)) < 0 ? -1 : s;
 }
 
-void bzero(void *dst, size_t sz)
+static void bzero(void *dst, size_t sz)
 {
     int CharElements = sz & (sizeof(size_t) - 1);
     sz -= CharElements;

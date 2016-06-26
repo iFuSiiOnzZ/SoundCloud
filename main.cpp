@@ -48,16 +48,36 @@ SOCKET OpenSocket(char *pIP, short Port)
     return connect(s, (struct sockaddr *) &server, sizeof(server)) < 0 ? -1 : s;
 }
 
+void bzero(void *dst, size_t sz)
+{
+    int CharElements = sz & (sizeof(size_t) - 1);
+    sz -= CharElements;
+
+    char *p1 = (char *)dst;
+    size_t *p2 =  (size_t *)((char *)dst + CharElements);
+
+    while(CharElements--)
+    {
+        *p1++ = 0;
+    }
+
+    while(sz)
+    {
+        *p2++ = 0;
+        sz -= sizeof(size_t);
+    }
+}
+
 int main(int argc, char *argv[])
 {
     WSADATA wsa = { 0 };
     SOCKET s = 0;
 
     char *pBuffer = (char *) malloc(BUFFER_SIZE);
-    memset(pBuffer, 0, BUFFER_SIZE);
+    bzero(pBuffer, BUFFER_SIZE);
 
     char *pAuxBuffer = (char *) malloc (AUX_BUFFER_SIZE);
-    memset(pAuxBuffer, 0, AUX_BUFFER_SIZE);
+    bzero(pAuxBuffer, AUX_BUFFER_SIZE);
 
     if (WSAStartup(MAKEWORD(2,2),&wsa) != 0)
     {
@@ -86,7 +106,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    memset(pBuffer, 0, BUFFER_SIZE);
+    bzero(pBuffer, BUFFER_SIZE);
     int rc = 0, i = 0, ReceiveTimeout = 300;
 
     setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char*)&ReceiveTimeout, sizeof(int));
@@ -96,7 +116,7 @@ int main(int argc, char *argv[])
     int HeaderSize = (int) (pDataStart - pBuffer);
 
     shutdown(s, SD_BOTH); closesocket(s);
-    memset(pAuxBuffer, 0, AUX_BUFFER_SIZE);
+    bzero(pAuxBuffer, AUX_BUFFER_SIZE);
 
     GetString(pDataStart, pAuxBuffer, "\"location\":\"");
     printf("done (%s)\n", pAuxBuffer);
@@ -123,14 +143,14 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    memset(pBuffer, 0, BUFFER_SIZE); i = 0;
+    bzero(pBuffer, BUFFER_SIZE); i = 0;
     while((rc = recv(s, pBuffer + i, BUFFER_SIZE - i, 0)) > 0) i += rc;
 
     pDataStart = strstr(pBuffer, "\r\n\r\n") + 4;
     HeaderSize = (int) (pDataStart - pBuffer);
 
     shutdown(s, SD_BOTH); closesocket(s);
-    memset(pAuxBuffer, 0, AUX_BUFFER_SIZE);
+    bzero(pAuxBuffer, AUX_BUFFER_SIZE);
 
     GetString(pDataStart, pAuxBuffer, "\"stream_url\":\"");
     printf("done (%s)\n", pAuxBuffer);
@@ -157,11 +177,11 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    memset(pBuffer, 0, BUFFER_SIZE); i = 0;
+    bzero(pBuffer, BUFFER_SIZE); i = 0;
     while((rc = recv(s, pBuffer + i, BUFFER_SIZE - i, 0)) > 0) i += rc;
 
     shutdown(s, SD_BOTH); closesocket(s);
-    memset(pAuxBuffer, 0, AUX_BUFFER_SIZE);
+    bzero(pAuxBuffer, AUX_BUFFER_SIZE);
 
     GetString(pDataStart, pAuxBuffer, "\"location\":\"");
     printf("done (%s)\n", pAuxBuffer);
@@ -178,7 +198,6 @@ int main(int argc, char *argv[])
     w += sprintf_s(pBuffer + w, BUFFER_SIZE - w, "Host: %s\r\n", pHostName);
     w += sprintf_s(pBuffer + w, BUFFER_SIZE - w, "\r\n");
 
-   
     struct hostent *pRemoteHost = gethostbyname(pHostName);
     char *pHostIp = inet_ntoa (*((struct in_addr *) pRemoteHost->h_addr_list[0]));
 
@@ -203,12 +222,10 @@ int main(int argc, char *argv[])
 
     pDataStart = strstr(pBuffer, "\r\n\r\n") + 4;
     HeaderSize = (int) (pDataStart - pBuffer);
+    int sz = i - HeaderSize;
 
     FILE *pFile = NULL;
     fopen_s(&pFile, "music.mp3", "wb");
-
-    char *p = pBuffer + HeaderSize;
-    int sz = i - HeaderSize;
 
     fwrite(pDataStart, sz, 1, pFile);
     fclose(pFile);

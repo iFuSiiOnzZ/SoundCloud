@@ -1,6 +1,4 @@
 #include "js_reader.h"
-#include <stdlib.h>
-#include <stdio.h>
 
 #define cast(type, data) (type)(data)
 #define DefaultName "root"

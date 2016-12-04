@@ -1,19 +1,13 @@
-#include <stdio.h>
 #include <time.h>
-
 #include "soundcloud.h"
-#include "../utils/utils.h"
 
-//bb9d0bcd8f2b1d18d954f7c93d531161
 #define SOUNDCLOUD_USER_ID "fDoItMDbsbZz8dY16ZzARCZmzgHBPotA"
-
-#define SOUNDCLOUD_IP   "93.184.220.127"
-#define SOUNDCLOUD_PORT 80
+#define SOUNDCLOUD_NETWORK_IP "93.184.220.127"
+#define SOUNDCLOUD_NETWORK_PT 80
 
 #define DATA_BUFFER_SIZE 16384
-#define array_count(x) (sizeof(x) / sizeof((x)[0]))
 
-void sc_get_trak_location(char *TrackURL, sc_track_location_t *OutData)
+void sc_get_track_location(char *TrackURL, sc_track_location_t *OutData)
 {
     char TemplateURL[] =
         "GET /resolve?url=%s&client_id=%s HTTP/1.1\r\n"
@@ -24,7 +18,7 @@ void sc_get_trak_location(char *TrackURL, sc_track_location_t *OutData)
     SOCKET s = 0;
     char DataBuffer[DATA_BUFFER_SIZE] = { 0 };
     
-    if((s = n_open_socket(SOUNDCLOUD_IP, SOUNDCLOUD_PORT)) == SOCKET_ERROR_OPEN)
+    if((s = n_open_socket(SOUNDCLOUD_NETWORK_IP, SOUNDCLOUD_NETWORK_PT)) == SOCKET_ERROR_OPEN)
     {
         printf("Connect error %d (%s: %d)\n", WSAGetLastError(), __FILE__, __LINE__);
         return;
@@ -58,7 +52,7 @@ void sc_get_trak_location(char *TrackURL, sc_track_location_t *OutData)
     n_close_socket(s);
 }
 
-void sc_get_trak_info(char *TrackLocation, sc_track_info_t *OutData)
+void sc_get_track_info(char *TrackLocation, sc_track_info_t *OutData)
 {
     char TemplateURL[] =
         "GET %s HTTP/1.1\r\n"
@@ -75,7 +69,7 @@ void sc_get_trak_info(char *TrackLocation, sc_track_info_t *OutData)
     n_parse_url(TrackLocation, &URLData);
     n_host_to_ip(URLData.HostName, HostIP);
     
-    if((s = n_open_socket(HostIP, SOUNDCLOUD_PORT)) == SOCKET_ERROR_OPEN)
+    if((s = n_open_socket(HostIP, SOUNDCLOUD_NETWORK_PT)) == SOCKET_ERROR_OPEN)
     {
         printf("Connect error %d (%s: %d)\n", WSAGetLastError(), __FILE__, __LINE__);
         return;
@@ -111,7 +105,7 @@ void sc_get_trak_info(char *TrackLocation, sc_track_info_t *OutData)
     n_close_socket(s);   
 }
 
-void sc_get_trak_streams(char *StreamLocation, sc_strems_urls_t *OutData)
+void sc_get_track_streams(char *StreamLocation, sc_strems_urls_t *OutData)
 {
     char TemplateURL[] =
         "GET %ss?client_id=%s HTTP/1.1\r\n"
@@ -128,7 +122,7 @@ void sc_get_trak_streams(char *StreamLocation, sc_strems_urls_t *OutData)
     n_parse_url(StreamLocation, &URLData);
     n_host_to_ip(URLData.HostName, HostIP);
     
-    if((s = n_open_socket(HostIP, SOUNDCLOUD_PORT)) == SOCKET_ERROR_OPEN)
+    if((s = n_open_socket(HostIP, SOUNDCLOUD_NETWORK_PT)) == SOCKET_ERROR_OPEN)
     {
         printf("Connect error %d (%s: %d)\n", WSAGetLastError(), __FILE__, __LINE__);
         return;
@@ -145,6 +139,7 @@ void sc_get_trak_streams(char *StreamLocation, sc_strems_urls_t *OutData)
     if(ContentStart)
     {
         ContentStart += 4;
+        char *jsString = 0;
 
         std::string s(ContentStart);
         s = replace_all(s, "\\u0026", "&");
@@ -155,14 +150,22 @@ void sc_get_trak_streams(char *StreamLocation, sc_strems_urls_t *OutData)
         json_parser(pRootNode, &Tokenizer);
         json_sanitize(pRootNode);
 
-        strcpy_s(OutData->hls_mp3_128_url, json_value(pRootNode, "root.hls_mp3_128_url"));
-        strcpy_s(OutData->http_mp3_128_url, json_value(pRootNode, "root.http_mp3_128_url"));
+        jsString = json_value(pRootNode, "root.hls_mp3_128_url");
+        if(jsString) strcpy_s(OutData->hls_mp3_128_url, jsString);
 
-        strcpy_s(OutData->rtmp_mp3_128_url, json_value(pRootNode, "root.rtmp_mp3_128_url"));
-        strcpy_s(OutData->preview_mp3_128_url, json_value(pRootNode, "root.preview_mp3_128_url"));
+        jsString = json_value(pRootNode, "root.http_mp3_128_url");
+        if(jsString) strcpy_s(OutData->http_mp3_128_url, jsString);
+
+        jsString = json_value(pRootNode, "root.rtmp_mp3_128_url");
+        if(jsString) strcpy_s(OutData->rtmp_mp3_128_url, jsString);
+
+        jsString = json_value(pRootNode, "root.preview_mp3_128_url");
+        if(jsString) strcpy_s(OutData->preview_mp3_128_url, jsString);
 
         json_clear(pRootNode);
     }
+
+
 
     n_close_socket(s);   
 }
@@ -184,7 +187,7 @@ void sc_download_track(char *StreamURL, char *FileName /* = 0 */)
     n_parse_url(StreamURL, &URLData);
     n_host_to_ip(URLData.HostName, HostIP);
     
-    if((s = n_open_socket(HostIP, SOUNDCLOUD_PORT)) == SOCKET_ERROR_OPEN)
+    if((s = n_open_socket(HostIP, SOUNDCLOUD_NETWORK_PT)) == SOCKET_ERROR_OPEN)
     {
         printf("Connect error %d (%s: %d)\n", WSAGetLastError(), __FILE__, __LINE__);
         return;

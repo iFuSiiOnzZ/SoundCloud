@@ -1,8 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
 
 int main(int argc, char *argv[])
 {
+    if(argc != 2)
+    {
+        printf("    %s\n", "ProgramName.exe \"sound cloud stream url\"");
+        return EXIT_SUCCESS;
+    }
+
     n_init_network();
     char Buffer[1024] = { 0 };
 
@@ -14,7 +18,7 @@ int main(int argc, char *argv[])
     
     {
         printf("    Getting track Location for  ...  ");
-        sc_get_trak_location(argv[1], &TrackLocation);
+        sc_get_track_location(argv[1], &TrackLocation);
         printf("%s\n", "done");
 
         if(TrackLocation.Location[0] == 0)
@@ -26,13 +30,13 @@ int main(int argc, char *argv[])
 
     {
         printf("    Getting track info for      ...  ");
-        sc_get_trak_info(TrackLocation.Location, &TrackInfo);
+        sc_get_track_info(TrackLocation.Location, &TrackInfo);
         printf("%s\n", "done");
     }
 
     {
-        printf("    Getting stream location for ...  ");
-        sc_get_trak_streams(TrackInfo.StreamURL, &StreamsLocation);
+        printf("    Getting stream location     ...  ");
+        sc_get_track_streams(TrackInfo.StreamURL, &StreamsLocation);
         printf("%s\n", "done");
     }
 

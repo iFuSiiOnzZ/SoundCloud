@@ -1,6 +1,7 @@
 #include <stdio.h>
-#include "soundcloud.h"
+#include <time.h>
 
+#include "soundcloud.h"
 #include "../utils/utils.h"
 
 //bb9d0bcd8f2b1d18d954f7c93d531161
@@ -192,45 +193,47 @@ void sc_download_track(char *StreamURL, char *FileName /* = 0 */)
     int w = sprintf_s(DataBuffer, TemplateURL, URLData.Params, URLData.HostName);
     n_send_data(s, DataBuffer, w);
 
-    int r = n_recv_data(s, DataBuffer, DATA_BUFFER_SIZE);
-    char *ContentStart = strstr(DataBuffer, "\r\n\r\n");
+    FILE *pFile = NULL;
+    int r = 0, header = 0;
 
-    if(ContentStart)
+    time_t now = time(0);
+    struct tm tstruct = { 0 };
+
+    char TimeBuffer[64] = { 0 };
+    localtime_s(&tstruct, &now);
+
+    strftime(TimeBuffer, sizeof(TimeBuffer), "%d%m%Y_%H%M%S", &tstruct);
+    sprintf_s(DataBuffer, "%s.mp3", TimeBuffer);
+
+    fopen_s(&pFile, FileName ? (const char *) FileName : DataBuffer, "wb");
+
+    while(true)
     {
-        ContentStart += 4;
+        r = n_recv_data(s, DataBuffer, DATA_BUFFER_SIZE);
 
-        FILE *pFile = NULL;
-        fopen_s(&pFile, FileName ? (const char *) FileName : "music.mp3", "wb");
-
-        if(r == SOCKET_RECV_MORE_DATA)
+        if(!header)
         {
-            fwrite(ContentStart, DATA_BUFFER_SIZE - (ContentStart - DataBuffer), 1, pFile);
+            char *ContentStart = strstr(DataBuffer, "\r\n\r\n");
+            if(ContentStart) fwrite(ContentStart, r - (ContentStart - DataBuffer), 1, pFile);
 
-            while(true)
-            {
-                r = n_recv_data(s, DataBuffer, DATA_BUFFER_SIZE);
+            if(ContentStart) header = 1;
+            continue;
+        }
   
-                if(r == SOCKET_ERROR_RECV || r == 0) 
-                {
-                    break;
-                }
-                else if(r == SOCKET_RECV_MORE_DATA)
-                {
-                    fwrite(DataBuffer, DATA_BUFFER_SIZE, 1, pFile);
-                }
-                else
-                {
-                    fwrite(DataBuffer, r, 1, pFile);
-                }
-            }
+        if(r == SOCKET_ERROR_RECV || r == SOCKET_RECV_NO_DATA)
+        {
+            break;
+        }
+        else if(r == SOCKET_RECV_MORE_DATA)
+        {
+            fwrite(DataBuffer, DATA_BUFFER_SIZE, 1, pFile);
         }
         else
         {
-            fwrite(ContentStart, r - (ContentStart - DataBuffer), 1, pFile);
+            fwrite(DataBuffer, r, 1, pFile);
         }
-
-        fclose(pFile);
     }
 
+    fclose(pFile);
     n_close_socket(s);   
 }

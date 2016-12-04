@@ -12,6 +12,7 @@
 
 #define SOCKET_ERROR_HOST_TO_IP   (-4)
 
+#define SOCKET_RECV_NO_DATA   (  0)
 #define SOCKET_RECV_MORE_DATA (-24)
 
 typedef struct url_data_t

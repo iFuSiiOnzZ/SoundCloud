@@ -23,7 +23,7 @@ static inline void bzero(void *dst, size_t sz)
     }
 }
 
-std::string replace_all(std::string str, const std::string &from, const std::string &to)
+static inline std::string replace_all(std::string str, const std::string &from, const std::string &to)
 {
     for(size_t start_pos = str.find(from, 0); start_pos != std::string::npos; start_pos = str.find(from, start_pos))
     {

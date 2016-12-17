@@ -366,15 +366,15 @@ JS_NODE * json_root()
     return pRootNode;
 }
 
-int strcmp(const char* s1, const char* s2)
+static int my_strcmp(const char* s1, const char* s2)
 {
     while (*s1 && (*s1 == *s2)) s1++, s2++;
     return *(const unsigned char *) s1 - *(const unsigned char *) s2;
 }
 
-JS_NODE * json_find_sibling(JS_NODE *pNode, char *pQuery)
+static JS_NODE * json_find_sibling(JS_NODE *pNode, char *pQuery)
 {
-    while(pNode && strcmp(pQuery, pNode->Name))
+    while(pNode && my_strcmp(pQuery, pNode->Name))
     {
         pNode = pNode->Sibling;
     }
@@ -382,7 +382,7 @@ JS_NODE * json_find_sibling(JS_NODE *pNode, char *pQuery)
     return pNode;
 }
 
-JS_NODE * json_child_n(JS_NODE *pNode, int i)
+static JS_NODE * json_child_n(JS_NODE *pNode, int i)
 {
     while(pNode && i--)
     {
@@ -393,7 +393,7 @@ JS_NODE * json_child_n(JS_NODE *pNode, int i)
     return pNode;
 }
 
-int json_count_siblings(JS_NODE *pNode)
+static int json_count_siblings(JS_NODE *pNode)
 {
     int i = 0;
 
@@ -460,12 +460,12 @@ static void json_print_internal(JS_NODE *pNode, char *pNodeName, JS_TYPES jNodeT
 {
     if(jNodeType == JS_ARRAY && pNodeName)
     {
-        if(strcmp(pNodeName, "root")) printf("%*s\"%s\" :\n", 4 * Level, " ", pNodeName);
+        if(my_strcmp(pNodeName, "root")) printf("%*s\"%s\" :\n", 4 * Level, " ", pNodeName);
         printf("%*s%s\n", 4 * Level, " ", "[");
     }
     else if(jNodeType == JS_OBJECT && pNodeName)
     {
-        if(strcmp(pNodeName, "root"))printf("%*s\"%s\" :\n", 4 * Level, " ", pNodeName);
+        if(my_strcmp(pNodeName, "root"))printf("%*s\"%s\" :\n", 4 * Level, " ", pNodeName);
         printf("%*s%s\n", 4 * Level, " ", "{");
     }
 

@@ -1,0 +1,3 @@
+// NOTE(Andrei): Hardcoded ID, if in the future
+// there will be more resources, create .h file
+100 ICON "icon.ico"

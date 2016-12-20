@@ -7,6 +7,19 @@
 
 #define DATA_BUFFER_SIZE 16384
 
+
+static char *track_name_as_time()
+{
+    time_t now = time(0);
+    struct tm tstruct = { 0 };
+
+    static char TimeBuffer[64] = { 0 };
+    localtime_s(&tstruct, &now);
+
+    strftime(TimeBuffer, sizeof(TimeBuffer), "%d%m%Y_%H%M%S.000.mp3", &tstruct);
+    return TimeBuffer;
+}
+
 void sc_get_track_location(char *TrackURL, sc_track_location_t *OutData)
 {
     char TemplateURL[] =
@@ -170,7 +183,7 @@ void sc_get_track_streams(char *StreamLocation, sc_strems_urls_t *OutData)
     n_close_socket(s);   
 }
 
-void sc_download_track(char *StreamURL, char *FileName /* = 0 */)
+void sc_download_track(char *StreamURL, char *FilePath /* = 0 */, char *FileName /* = 0 */)
 {
     char TemplateURL[] =
         "GET %s HTTP/1.1\r\n"
@@ -197,18 +210,29 @@ void sc_download_track(char *StreamURL, char *FileName /* = 0 */)
     n_send_data(s, DataBuffer, w);
 
     FILE *pFile = NULL;
-    int r = 0, header = 0;
+    int r = 0, header = 0, ws = 0;
 
-    time_t now = time(0);
-    struct tm tstruct = { 0 };
+    if(FilePath)
+    {
+        size_t sz = strlen(FilePath), HasSlash = FilePath[sz - 1] == '/';
+        ws += sprintf_s(DataBuffer + ws, DATA_BUFFER_SIZE - ws, "%s%s", FilePath, HasSlash ? "" : "/");
+    }
 
-    char TimeBuffer[64] = { 0 };
-    localtime_s(&tstruct, &now);
+    if(FileName)
+    {
+        sprintf_s(DataBuffer + ws, DATA_BUFFER_SIZE - ws, "%s", FileName);
+    }
 
-    strftime(TimeBuffer, sizeof(TimeBuffer), "%d%m%Y_%H%M%S", &tstruct);
-    sprintf_s(DataBuffer, "%s.mp3", TimeBuffer);
+    if(fopen_s(&pFile, DataBuffer, "wb"))
+    {
+        sprintf_s(DataBuffer + ws, DATA_BUFFER_SIZE - ws, "%s", track_name_as_time());
 
-    fopen_s(&pFile, FileName ? (const char *) FileName : DataBuffer, "wb");
+        if(fopen_s(&pFile, DataBuffer, "wb"))
+        {
+            n_close_socket(s);
+            return;
+        }
+    }
 
     while(true)
     {
@@ -238,5 +262,5 @@ void sc_download_track(char *StreamURL, char *FileName /* = 0 */)
     }
 
     fclose(pFile);
-    n_close_socket(s);   
+    n_close_socket(s);
 }

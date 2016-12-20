@@ -28,6 +28,6 @@ void sc_get_track_location(char *TrackURL, sc_track_location_t *OutData);
 void sc_get_track_info(char *TrackLocation, sc_track_info_t *OutData);
 
 void sc_get_track_streams(char *StreamLocation, sc_strems_urls_t *OutData);
-void sc_download_track(char *StreamURL, char *FileName = 0);
+void sc_download_track(char *StreamURL, char *FilePath = 0, char *FileName = 0);
 
 #endif

@@ -25,7 +25,7 @@ call rc /nologo /fo %ResourceName% res\resource.rc
 
 :: Compiler flags
 SET CommonCompilerFlags= /nologo /O2 /MT /Z7 /EHsc  /Fd%PDBFiles% /Fo%IntermediatePath% /Fe%ExePath%
-SET CommonLinkerFlags= -incremental:no -opt:ref
+SET CommonLinkerFlags= -incremental:no -opt:ref User32.lib
 SET Defines=-DX64
 
 :: Compile

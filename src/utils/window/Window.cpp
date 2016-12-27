@@ -1,4 +1,6 @@
 #include "Window.h"
+#include "..\..\soundcloud\soundcloud.h"
+
 #include <commctrl.h>
 
 #pragma comment(linker,"\"/manifestdependency:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
@@ -12,6 +14,36 @@
 
 #define IDC_BUTTON_ID   1000
 #define IDC_EDIT_ID     2000
+#define IDC_PROGRESS_ID 3000
+
+static void download_track(HWND hWnd)
+{
+    sc_track_location_t TrackLocation = { 0 };
+    sc_strems_urls_t StreamsLocation = { 0 };
+    sc_track_info_t TrackInfo = { 0 };
+
+    char s[1024] = { 0 };
+    GetWindowTextA(GetDlgItem(hWnd, IDC_EDIT_ID), s, 1024);
+
+    if(!s[0])
+    {
+        MessageBoxA(hWnd, "Input can not be empty", "", MB_OK);
+        return;
+    }
+
+    sc_get_track_location(s, &TrackLocation);
+    if(!TrackLocation.Location[0])
+    {
+        MessageBoxA(hWnd, "No track found the given URL", "", MB_OK);
+        return;
+    }
+
+    sc_get_track_info(TrackLocation.Location, &TrackInfo);
+    sc_get_track_streams(TrackInfo.StreamURL, &StreamsLocation);
+
+    sprintf_s(s, "%s.mp3", TrackInfo.Title);
+    sc_download_track(StreamsLocation.http_mp3_128_url, NULL, s, GetDlgItem(hWnd, IDC_PROGRESS_ID));
+}
 
 static LRESULT CALLBACK window_procedure(HWND hWnd, UINT hMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -26,7 +58,7 @@ static LRESULT CALLBACK window_procedure(HWND hWnd, UINT hMsg, WPARAM wParam, LP
 
         CreateWindowExA(WS_EX_CLIENTEDGE, "EDIT", "", WS_CHILD|WS_VISIBLE|ES_MULTILINE|ES_AUTOVSCROLL|ES_AUTOHSCROLL, 10, 100, 495, 25, hWnd, (HMENU)IDC_EDIT_ID, NULL, NULL);
         CreateWindowExA(0, "BUTTON", "Download", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 510, 100, 100, 25, hWnd, (HMENU)IDC_BUTTON_ID, NULL, NULL);
-        CreateWindowExA(0, PROGRESS_CLASS, (LPTSTR) NULL,  WS_CHILD | WS_VISIBLE, 10,  130, 600, 25, hWnd, (HMENU) 0, NULL, NULL);
+        CreateWindowExA(0, PROGRESS_CLASS, (LPTSTR) NULL,  WS_CHILD | WS_VISIBLE, 10,  130, 600, 25, hWnd, (HMENU) IDC_PROGRESS_ID, NULL, NULL);
 
     }
     else if(hMsg == WM_CLOSE)
@@ -43,11 +75,16 @@ static LRESULT CALLBACK window_procedure(HWND hWnd, UINT hMsg, WPARAM wParam, LP
         ShowWindow(GetConsoleWindow(), SW_SHOWNORMAL);
         PostQuitMessage(EXIT_SUCCESS);
     }
+    else if(hMsg == WM_COMMAND && LOWORD(wParam) == IDC_BUTTON_ID)
+    {
+        download_track(hWnd);
+        MessageBoxA(hWnd, "Download complete", "", MB_OK);
+    }
 
     return DefWindowProcA(hWnd, hMsg, wParam, lParam);
 }
 
-int open_window()
+int win32_open_window()
 {
     WNDCLASSEXA wndCls;     memset(&wndCls, 0, sizeof(WNDCLASSEX));
     HWND        hWnd;       memset(&hWnd, 0, sizeof(HWND));

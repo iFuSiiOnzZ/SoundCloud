@@ -20,6 +20,23 @@ static char *track_name_as_time()
     return TimeBuffer;
 }
 
+static char *htpp_get_header_param(char *Header, char *Param)
+{
+    static char Value[1024] = { 0 };
+    char *p = strstr(Header, Param);
+
+    if(p)
+    {
+        p += strlen(Param);
+        while(*p == ' ') ++p;
+
+        int i = 0;
+        while(*p != '\n') Value[i++] = *p++;
+    }
+
+    return Value;
+}
+
 void sc_get_track_location(char *TrackURL, sc_track_location_t *OutData)
 {
     char TemplateURL[] =
@@ -183,7 +200,7 @@ void sc_get_track_streams(char *StreamLocation, sc_strems_urls_t *OutData)
     n_close_socket(s);   
 }
 
-void sc_download_track(char *StreamURL, char *FilePath /* = 0 */, char *FileName /* = 0 */)
+void sc_download_track(char *StreamURL, char *FilePath /* = 0 */, char *FileName /* = 0 */,  HWND hProgressBar /* = 0 */)
 {
     char TemplateURL[] =
         "GET %s HTTP/1.1\r\n"
@@ -243,7 +260,15 @@ void sc_download_track(char *StreamURL, char *FilePath /* = 0 */, char *FileName
             char *ContentStart = strstr(DataBuffer, "\r\n\r\n");
             if(ContentStart) fwrite(ContentStart, r - (ContentStart - DataBuffer), 1, pFile);
 
-            if(ContentStart) header = 1;
+            if(ContentStart)
+            {
+                header = 1, ws = 0;
+                int TrackSize = atoi(htpp_get_header_param(DataBuffer, "Content-Length:"));
+
+                SendMessage(hProgressBar, PBM_SETRANGE, 0, MAKELPARAM(0, TrackSize));
+                SendMessage(hProgressBar, PBM_SETPOS, 0, 0);
+            }
+
             continue;
         }
   
@@ -253,11 +278,15 @@ void sc_download_track(char *StreamURL, char *FilePath /* = 0 */, char *FileName
         }
         else if(r == SOCKET_RECV_MORE_DATA)
         {
+            ws += DATA_BUFFER_SIZE;
+            SendMessage(hProgressBar, PBM_SETPOS, ws, 0);
             fwrite(DataBuffer, DATA_BUFFER_SIZE, 1, pFile);
         }
         else
         {
+            ws += DATA_BUFFER_SIZE;
             fwrite(DataBuffer, r, 1, pFile);
+            SendMessage(hProgressBar, PBM_SETPOS, ws, 0);
         }
     }
 

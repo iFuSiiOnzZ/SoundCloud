@@ -1,3 +1,3 @@
 #pragma once
 
-int  open_window();
+int  win32_open_window();

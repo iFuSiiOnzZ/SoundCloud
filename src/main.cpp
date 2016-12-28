@@ -3,6 +3,8 @@ typedef struct args_t
 {
     char *SongURL;
     char *SavePath;
+
+    int ShowHelp;
 } args_t;
 
 static void CreateFolder(char *pFolder)
@@ -54,6 +56,12 @@ static int ParseArgs(int argc, char *argv[], args_t *OutData)
             OutData->SavePath = argv[i + 1];
             bSp = 1; ++i;
         }
+
+        if(!my_strcmp(argv[i], "-h"))
+        {
+            OutData->ShowHelp = 1;
+            break;
+        }
     }
 
     return bSc;
@@ -77,9 +85,18 @@ int main(int argc, char *argv[])
     args_t Args = { 0 };
     int r = ParseArgs(argc, argv, &Args);
 
-    if(!r)
+    if(Args.ShowHelp)
     {
         Help();
+        return EXIT_SUCCESS;
+    }
+
+    if(!r)
+    {
+        n_init_network();
+        win32_open_window();
+
+        n_close_network();
         return EXIT_SUCCESS;
     }
 

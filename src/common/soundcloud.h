@@ -24,10 +24,18 @@ typedef struct sc_strems_urls_t
     char preview_mp3_128_url[1024];
 } sc_strems_urls_t;
 
+typedef struct sc_stream_process_t
+{
+    void (* DataSize) (int, void *);
+    void (* DataDownload) (int, void *);
+
+    void *UserData;
+} sc_stream_process_t;
+
 void sc_get_track_location(char *TrackURL, sc_track_location_t *OutData);
 void sc_get_track_info(char *TrackLocation, sc_track_info_t *OutData);
 
 void sc_get_track_streams(char *StreamLocation, sc_strems_urls_t *OutData);
-void sc_download_track(char *StreamURL, char *FilePath = 0, char *FileName = 0, HWND hProgressBar = 0);
+void sc_download_track(char *StreamURL, char *FilePath = 0, char *FileName = 0, sc_stream_process_t *CallBacks = 0);
 
 #endif

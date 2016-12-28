@@ -1,5 +1,5 @@
 #include "network.h"
-#include "../utils.h"
+#include "../../common/utils.h"
 
 int n_init_network()
 {

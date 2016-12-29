@@ -30,3 +30,7 @@ SET Defines=-DX64
 
 :: Compile
 call cl %CommonCompilerFlags% %Defines% build.cpp /link %CommonLinkerFlags% %ResourceName%
+
+:: Embeb the manifest
+call mt.exe -nologo -manifest "%ExePath%.exe.manifest" -outputresource:"%ExePath%.exe;1"
+call del %ExePath%.exe.manifest

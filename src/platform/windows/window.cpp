@@ -84,25 +84,40 @@ static int CALLBACK BrowseFolderCallback(HWND hWnd, UINT hMsg, LPARAM lParam, LP
     return 0;
 }
 
+static int CALLBACK SetFont(HWND child, LPARAM font)
+{
+    SendMessage(child, WM_SETFONT, font, true);
+    return 1;
+}
 
-static LRESULT CALLBACK window_procedure(HWND hWnd, UINT hMsg, WPARAM wParam, LPARAM lParam)
+
+static LRESULT CALLBACK WindowCallback(HWND hWnd, UINT hMsg, WPARAM wParam, LPARAM lParam)
 {
     if(hMsg == WM_CREATE)
     {
         INITCOMMONCONTROLSEX CommonControls = { 0 };
+
         CommonControls.dwSize = sizeof(INITCOMMONCONTROLSEX);
         CommonControls.dwICC  = ICC_PROGRESS_CLASS;
 
         ShowWindow(GetConsoleWindow(), SW_HIDE);
         InitCommonControlsEx(&CommonControls);
 
-        CreateWindowExA(WS_EX_CLIENTEDGE, "EDIT", "", WS_CHILD|WS_VISIBLE|ES_MULTILINE|ES_AUTOVSCROLL|ES_AUTOHSCROLL, 10, 70, 495, 25, hWnd, (HMENU)IDC_EDIT_URL_ID, NULL, NULL);
-        CreateWindowExA(0, "BUTTON", "Download", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 510, 70, 100, 25, hWnd, (HMENU)IDC_BUTTON_DOWNLOAD_ID, NULL, NULL);
+        HWND hEditDownload = CreateWindowExA(WS_EX_CLIENTEDGE, "EDIT", "", WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL, 10, 70, 495, 25, hWnd, (HMENU)IDC_EDIT_URL_ID, NULL, NULL);
+        CreateWindowExA(0, "BUTTON", "Download", WS_TABSTOP | WS_VISIBLE | WS_CHILD, 510, 70, 100, 25, hWnd, (HMENU)IDC_BUTTON_DOWNLOAD_ID, NULL, NULL);
 
-        CreateWindowExA(WS_EX_CLIENTEDGE, "EDIT", "", WS_CHILD|WS_VISIBLE|ES_MULTILINE|ES_AUTOVSCROLL|ES_AUTOHSCROLL, 10, 100, 495, 25, hWnd, (HMENU)IDC_EDIT_PATH_ID, NULL, NULL);
-        CreateWindowExA(0, "BUTTON", "...", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 510, 100, 100, 25, hWnd, (HMENU)IDC_BUTTON_FILEPATH_ID, NULL, NULL);
+        HWND hEditSavePath = CreateWindowExA(WS_EX_CLIENTEDGE, "EDIT", "", WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL, 10, 100, 495, 25, hWnd, (HMENU)IDC_EDIT_PATH_ID, NULL, NULL);
+        CreateWindowExA(0, "BUTTON", "...", WS_TABSTOP | WS_VISIBLE | WS_CHILD, 510, 100, 100, 25, hWnd, (HMENU)IDC_BUTTON_FILEPATH_ID, NULL, NULL);
 
         CreateWindowExA(0, PROGRESS_CLASS, (LPTSTR) NULL,  WS_CHILD | WS_VISIBLE, 10,  130, 600, 25, hWnd, (HMENU) IDC_PROGRESS_ID, NULL, NULL);
+        EnumChildWindows(hWnd, (WNDENUMPROC)SetFont, (LPARAM)GetStockObject(DEFAULT_GUI_FONT));
+
+        wchar_t CurrentPath[MAX_PATH] = { 0 };
+        int i = GetModuleFileNameW(NULL, CurrentPath, MAX_PATH);
+        while(i && CurrentPath[i] != '\\') CurrentPath[i--] = 0;
+
+        SendMessage(hEditDownload, EM_SETCUEBANNER, TRUE, (LPARAM) L"https://soundcloud.com/thefatrat/thefatrat-monody-feat-laura-brehm-1");
+        SendMessage(hEditSavePath, EM_SETCUEBANNER, TRUE, (LPARAM) CurrentPath);
         
         return 0;
     }
@@ -172,7 +187,7 @@ int win32_open_window()
     wndCls.cbSize           = sizeof(WNDCLASSEX);
     wndCls.hInstance        = GetModuleHandle(NULL);
 
-    wndCls.lpfnWndProc      = window_procedure;
+    wndCls.lpfnWndProc      = WindowCallback;
     wndCls.lpszClassName    = CLASS_NAME;
 
     wndCls.style			= 0;

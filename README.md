@@ -5,6 +5,11 @@ A small application to download songs from SoundCloud
 [OneDrive](https://1drv.ms/u/s!AirMY7s72T8BvF7Sh6DnctdMwqwL)
 
 ## Usage
+
+The application can be executed in console mode or using the user graphic interface. For user interface just click the exe, for console open a command line a type SoundCloud.exe -s song_url.
+
+![alt tag](http://i.imgur.com/FFmH4nP.png)
+
 ```
 SoundCloud.exe -s song_url [-p save_path]
     > -s soundcloud song url

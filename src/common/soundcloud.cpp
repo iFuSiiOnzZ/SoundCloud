@@ -1,7 +1,7 @@
 #include <time.h>
 #include "soundcloud.h"
 
-#define SOUNDCLOUD_USER_ID "fDoItMDbsbZz8dY16ZzARCZmzgHBPotA"
+#define SOUNDCLOUD_USER_ID "2t9loNQH90kzJcsFCODdigxfp325aq4z"
 #define SOUNDCLOUD_NETWORK_IP "93.184.220.127"
 #define SOUNDCLOUD_NETWORK_PT 80
 
@@ -72,8 +72,18 @@ void sc_get_track_location(char *TrackURL, sc_track_location_t *OutData)
         json_parser(pRootNode, &Tokenizer);
         json_sanitize(pRootNode);
 
+        if (pRootNode->Type == JS_UNDEFINED)
+        {
+            json_clear(pRootNode);
+            return;
+        }
+
         char *Location = json_value(pRootNode, "root.location");
-        if(!Location) return;
+        if (!Location)
+        {
+            json_clear(pRootNode);
+            return;
+        }
 
         strcpy_s(OutData->Location, Location);
         json_clear(pRootNode);

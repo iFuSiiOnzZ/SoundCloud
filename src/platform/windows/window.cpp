@@ -22,6 +22,11 @@
 
 #define IDC_PROGRESS_ID 3000
 
+typedef struct download_track_data_t
+{
+    HWND hWnd;
+} download_track_data_t;
+
 static void set_progress_size(int DataSize, void *UserData)
 {
     SendMessage((HWND) UserData, PBM_SETRANGE, 0, MAKELPARAM(0, DataSize));
@@ -32,8 +37,11 @@ static void set_progress_progress(int DownloadedSize, void *UserData)
     SendMessage((HWND) UserData, PBM_SETPOS, DownloadedSize, 0);
 }
 
-static int download_track(HWND hWnd)
+static DWORD WINAPI download_track(void *pData)
 {
+    HWND hWnd = ((download_track_data_t *)pData)->hWnd;
+    free(pData); pData = NULL;
+
     sc_track_location_t TrackLocation = { 0 };
     sc_strems_urls_t StreamsLocation = { 0 };
     sc_track_info_t TrackInfo = { 0 };
@@ -46,6 +54,7 @@ static int download_track(HWND hWnd)
 
     if(!Buffer[0])
     {
+        EnableWindow(GetDlgItem(hWnd, IDC_BUTTON_DOWNLOAD_ID), TRUE);
         MessageBoxA(hWnd, "Input can not be empty", "", MB_OK);
         return 0;
     }
@@ -53,7 +62,8 @@ static int download_track(HWND hWnd)
     sc_get_track_location(Buffer, &TrackLocation);
     if(!TrackLocation.Location[0])
     {
-        MessageBoxA(hWnd, "No track found the given URL", "", MB_OK);
+        MessageBoxA(hWnd, "No track found to the given URL", "", MB_OK);
+        EnableWindow(GetDlgItem(hWnd, IDC_BUTTON_DOWNLOAD_ID), TRUE);
         return 0;
     }
 
@@ -70,7 +80,9 @@ static int download_track(HWND hWnd)
     sprintf_s(Buffer, "%s.mp3", TrackInfo.Title);
     sc_download_track(StreamsLocation.http_mp3_128_url, strlen(SavePath) ? SavePath : NULL, Buffer, &CallBaks);
 
-    return 1;
+    EnableWindow(GetDlgItem(hWnd, IDC_BUTTON_DOWNLOAD_ID), TRUE);
+    MessageBoxA(hWnd, "Download complete", "", MB_OK);
+    return 0;
 }
 
 static int CALLBACK BrowseFolderCallback(HWND hWnd, UINT hMsg, LPARAM lParam, LPARAM lpData)
@@ -143,9 +155,13 @@ static LRESULT CALLBACK WindowCallback(HWND hWnd, UINT hMsg, WPARAM wParam, LPAR
     }
     else if(hMsg == WM_COMMAND && LOWORD(wParam) == IDC_BUTTON_DOWNLOAD_ID)
     {
-        int Ok = download_track(hWnd);
-        if(Ok) MessageBoxA(hWnd, "Download complete", "", MB_OK);
+        download_track_data_t *pData = (download_track_data_t *) malloc(sizeof(download_track_data_t));
+        pData->hWnd = hWnd;
 
+        HANDLE hThread = CreateThread(NULL, 0, download_track, pData, 0, NULL);
+        CloseHandle(hThread);
+
+        EnableWindow(GetDlgItem(hWnd, IDC_BUTTON_DOWNLOAD_ID), FALSE);
         return 0;
     }
     else if(hMsg == WM_COMMAND && LOWORD(wParam) == IDC_BUTTON_FILEPATH_ID)

@@ -1,7 +1,7 @@
 #include <time.h>
 #include "soundcloud.h"
 
-#define SOUNDCLOUD_USER_ID "2t9loNQH90kzJcsFCODdigxfp325aq4z"
+#define SOUNDCLOUD_USER_ID "PAazukPNVX24VfrECSHPsiGsFnIcRq02"
 #define SOUNDCLOUD_NETWORK_IP "93.184.220.127"
 #define SOUNDCLOUD_NETWORK_PT 80
 

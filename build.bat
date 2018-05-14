@@ -19,6 +19,12 @@ DEL /Q %PDBFiles%*.pdb 2>NUL
 DEL /Q %PDBFiles%*.Exe 2>NUL
 DEL /Q %PDBFiles%*.ilk 2>NUL
 
+:: Load compiler
+WHERE cl >nul 2>nul
+IF %ERRORLEVEL% NEQ 0 (
+    CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x64
+)
+
 :: Resource files
 SET ResourceName=%IntermediatePath%resource.res
 call rc /nologo /fo %ResourceName% res\resource.rc
